@@ -65,6 +65,8 @@ class TestColor
     assert_not_equal(Color.new(1.5, 2.5, 13.5, 4.5), Color.new(1.5, 2.5, 3.5, 4.5))
     assert_not_equal(Color.new(1.5, 2.5, 3.5, 14.5), Color.new(1.5, 2.5, 3.5, 4.5))
     assert_not_same(Color.new(1.5, 2.5, 3.5, 4.5), Color.new(1.5, 2.5, 3.5, 4.5))
+    assert_equal(Color.new(1.5, 2.5, 3.5, 4.5) <=> Color.new(1.5, 2.5, 3.5, 4.5), 0)
+    assert_equal(Color.new(1.5, 2.5, 3.5, 4.5) <=> Color.new(1.5, 2.5, 3.5, 14.5), nil)
   end
 
   def test_set
@@ -97,6 +99,14 @@ class TestColor
     assert(Float === Color.new.set(1, 2, 3).green)
     assert(Float === Color.new.set(1, 2, 3).blue)
     assert(Float === Color.new.set(1, 2, 3).alpha)
+
+    c1 = Color.new
+    c2 = Color.new(1.5, 2.5, 3.5, 4.5)
+    c1.set(c2)
+    c1.red = 11.5
+    assert_equal(c2.red, 1.5)
+    c2.green = 12.5
+    assert_equal(c1.green, 2.5)
   end
 
   def test_set_saturation_lb

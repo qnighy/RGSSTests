@@ -64,6 +64,8 @@ class TestTone
     assert_not_equal(Tone.new(1.5, 2.5, 13.5, 4.5), Tone.new(1.5, 2.5, 3.5, 4.5))
     assert_not_equal(Tone.new(1.5, 2.5, 3.5, 14.5), Tone.new(1.5, 2.5, 3.5, 4.5))
     assert_not_same(Tone.new(1.5, 2.5, 3.5, 4.5), Tone.new(1.5, 2.5, 3.5, 4.5))
+    assert_equal(Tone.new(1.5, 2.5, 3.5, 4.5) <=> Tone.new(1.5, 2.5, 3.5, 4.5), 0)
+    assert_equal(Tone.new(1.5, 2.5, 3.5, 4.5) <=> Tone.new(1.5, 2.5, 3.5, 14.5), nil)
   end
 
   def test_set
@@ -96,6 +98,14 @@ class TestTone
     assert(Float === Tone.new.set(1, 2, 3).green)
     assert(Float === Tone.new.set(1, 2, 3).blue)
     assert(Float === Tone.new.set(1, 2, 3).gray)
+
+    t1 = Tone.new
+    t2 = Tone.new(1.5, 2.5, 3.5, 4.5)
+    t1.set(t2)
+    t1.red = 11.5
+    assert_equal(t2.red, 1.5)
+    t2.green = 12.5
+    assert_equal(t1.green, 2.5)
   end
 
   def test_set_saturation_lb
