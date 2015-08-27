@@ -163,34 +163,30 @@ class TestBitmap
   end
 
   def test_clear_rect
-    [false, true].each do|call_with_rect|
-      [-3, 8].each do|ry1|
-        [-2, 7].each do|rx1|
-          [6, 17, 23].each do|ry2|
-            [4, 7, 13].each do|rx2|
-              b = Bitmap.new(10, 20)
-              20.times do|y|
-                10.times do|x|
-                  b.set_pixel(x, y, Color.new(x, y, 13.5, 14.5))
-                end
-              end
-              if call_with_rect then
-                b.clear_rect(Rect.new(rx1, ry1, rx2-rx1, ry2-ry1))
-              else
-                b.clear_rect(rx1, ry1, rx2-rx1, ry2-ry1)
-              end
-              assert_equal(b.height, 20)
-              assert_equal(b.width, 10)
-              20.times do|y|
-                10.times do|x|
-                  if rx1 <= x && x < rx2 && ry1 <= y && y < ry2 then
-                    assert_equal(b.get_pixel(x, y), Color.new)
-                  else
-                    assert_equal(b.get_pixel(x, y), Color.new(x, y, 13, 14))
-                  end
-                end
-              end
-            end
+    [false, true].product(
+      [-3, 8],
+      [2, 7],
+      [6, 17, 23],
+      [4, 7, 13]).each do|(call_with_rect, ry1, rx1, ry2, rx2)|
+      b = Bitmap.new(10, 20)
+      20.times do|y|
+        10.times do|x|
+          b.set_pixel(x, y, Color.new(x, y, 13.5, 14.5))
+        end
+      end
+      if call_with_rect then
+        b.clear_rect(Rect.new(rx1, ry1, rx2-rx1, ry2-ry1))
+      else
+        b.clear_rect(rx1, ry1, rx2-rx1, ry2-ry1)
+      end
+      assert_equal(b.height, 20)
+      assert_equal(b.width, 10)
+      20.times do|y|
+        10.times do|x|
+          if rx1 <= x && x < rx2 && ry1 <= y && y < ry2 then
+            assert_equal(b.get_pixel(x, y), Color.new)
+          else
+            assert_equal(b.get_pixel(x, y), Color.new(x, y, 13, 14))
           end
         end
       end
@@ -198,34 +194,30 @@ class TestBitmap
   end
 
   def test_fill_rect
-    [false, true].each do|call_with_rect|
-      [-3, 8].each do|ry1|
-        [-2, 7].each do|rx1|
-          [6, 17, 23].each do|ry2|
-            [4, 7, 13].each do|rx2|
-              b = Bitmap.new(10, 20)
-              20.times do|y|
-                10.times do|x|
-                  b.set_pixel(x, y, Color.new(x, y, 13.5, 14.5))
-                end
-              end
-              if call_with_rect then
-                b.fill_rect(Rect.new(rx1, ry1, rx2-rx1, ry2-ry1), Color.new(101, 102, 103, 128))
-              else
-                b.fill_rect(rx1, ry1, rx2-rx1, ry2-ry1, Color.new(101, 102, 103, 128))
-              end
-              assert_equal(b.height, 20)
-              assert_equal(b.width, 10)
-              20.times do|y|
-                10.times do|x|
-                  if rx1 <= x && x < rx2 && ry1 <= y && y < ry2 then
-                    assert_equal(b.get_pixel(x, y), Color.new(101, 102, 103, 128))
-                  else
-                    assert_equal(b.get_pixel(x, y), Color.new(x, y, 13, 14))
-                  end
-                end
-              end
-            end
+    [false, true].product(
+      [-3, 8],
+      [-2, 7],
+      [6, 17, 23],
+      [4, 7, 13]).each do|(call_with_rect, ry1, rx1, ry2, rx2)|
+      b = Bitmap.new(10, 20)
+      20.times do|y|
+        10.times do|x|
+          b.set_pixel(x, y, Color.new(x, y, 13.5, 14.5))
+        end
+      end
+      if call_with_rect then
+        b.fill_rect(Rect.new(rx1, ry1, rx2-rx1, ry2-ry1), Color.new(101, 102, 103, 128))
+      else
+        b.fill_rect(rx1, ry1, rx2-rx1, ry2-ry1, Color.new(101, 102, 103, 128))
+      end
+      assert_equal(b.height, 20)
+      assert_equal(b.width, 10)
+      20.times do|y|
+        10.times do|x|
+          if rx1 <= x && x < rx2 && ry1 <= y && y < ry2 then
+            assert_equal(b.get_pixel(x, y), Color.new(101, 102, 103, 128))
+          else
+            assert_equal(b.get_pixel(x, y), Color.new(x, y, 13, 14))
           end
         end
       end
@@ -237,60 +229,55 @@ class TestBitmap
     c2 = Color.new(254.5, 100.7, 100.1, 0.1)
     c1i = Color.new(c1.red.to_i, c1.green.to_i, c1.blue.to_i, c1.alpha.to_i)
     c2i = Color.new(c2.red.to_i, c2.green.to_i, c2.blue.to_i, c2.alpha.to_i)
-    [false, true].each do|call_with_rect|
-      [nil, false, true].each do|vertical|
-        [-3, 8].each do|ry1|
-          [-2, 7].each do|rx1|
-            [6, 17, 23].each do|ry2|
-              [4, 7, 13].each do|rx2|
-                sy1 = ry1
-                sx1 = rx1
-                sy2 = ry2-1
-                sx2 = rx2-1
-                b = Bitmap.new(10, 20)
-                20.times do|y|
-                  10.times do|x|
-                    b.set_pixel(x, y, Color.new(x, y, 13.5, 14.5))
-                  end
-                end
-                if call_with_rect then
-                  if vertical.nil? then
-                    b.gradient_fill_rect(Rect.new(rx1, ry1, rx2-rx1, ry2-ry1), c1, c2)
-                  else
-                    b.gradient_fill_rect(Rect.new(rx1, ry1, rx2-rx1, ry2-ry1), c1, c2, vertical)
-                  end
-                else
-                  if vertical.nil? then
-                    b.gradient_fill_rect(rx1, ry1, rx2-rx1, ry2-ry1, c1, c2)
-                  else
-                    b.gradient_fill_rect(rx1, ry1, rx2-rx1, ry2-ry1, c1, c2, vertical)
-                  end
-                end
-                assert_equal(b.height, 20)
-                assert_equal(b.width, 10)
-                20.times do|y|
-                  10.times do|x|
-                    if vertical || (!call_with_rect && vertical == false) then
-                      factor_a = y-sy1
-                      factor_b = sy2-sy1
-                    else
-                      factor_a = x-sx1
-                      factor_b = sx2-sx1
-                    end
-                    expected = Color.new(
-                      c1i.red + ((c2i.red - c1i.red) * factor_a / factor_b).to_i,
-                      c1i.green + ((c2i.green - c1i.green) * factor_a / factor_b).to_i,
-                      c1i.blue + ((c2i.blue - c1i.blue) * factor_a / factor_b).to_i,
-                      c1i.alpha + ((c2i.alpha - c1i.alpha) * factor_a / factor_b).to_i)
-                    if rx1 <= x && x < rx2 && ry1 <= y && y < ry2 then
-                      assert_equal(b.get_pixel(x, y), expected)
-                    else
-                      assert_equal(b.get_pixel(x, y), Color.new(x, y, 13, 14))
-                    end
-                  end
-                end
-              end
-            end
+    [false, true].product(
+      [nil, false, true],
+      [-3, 8],
+      [-2, 7],
+      [6, 17, 23],
+      [4, 7, 13]).each do|(call_with_rect, vertical, ry1, rx1, ry2, rx2)|
+      sy1 = ry1
+      sx1 = rx1
+      sy2 = ry2-1
+      sx2 = rx2-1
+      b = Bitmap.new(10, 20)
+      20.times do|y|
+        10.times do|x|
+          b.set_pixel(x, y, Color.new(x, y, 13.5, 14.5))
+        end
+      end
+      if call_with_rect then
+        if vertical.nil? then
+          b.gradient_fill_rect(Rect.new(rx1, ry1, rx2-rx1, ry2-ry1), c1, c2)
+        else
+          b.gradient_fill_rect(Rect.new(rx1, ry1, rx2-rx1, ry2-ry1), c1, c2, vertical)
+        end
+      else
+        if vertical.nil? then
+          b.gradient_fill_rect(rx1, ry1, rx2-rx1, ry2-ry1, c1, c2)
+        else
+          b.gradient_fill_rect(rx1, ry1, rx2-rx1, ry2-ry1, c1, c2, vertical)
+        end
+      end
+      assert_equal(b.height, 20)
+      assert_equal(b.width, 10)
+      20.times do|y|
+        10.times do|x|
+          if vertical || (!call_with_rect && vertical == false) then
+            factor_a = y-sy1
+            factor_b = sy2-sy1
+          else
+            factor_a = x-sx1
+            factor_b = sx2-sx1
+          end
+          expected = Color.new(
+            c1i.red + ((c2i.red - c1i.red) * factor_a / factor_b).to_i,
+            c1i.green + ((c2i.green - c1i.green) * factor_a / factor_b).to_i,
+            c1i.blue + ((c2i.blue - c1i.blue) * factor_a / factor_b).to_i,
+            c1i.alpha + ((c2i.alpha - c1i.alpha) * factor_a / factor_b).to_i)
+          if rx1 <= x && x < rx2 && ry1 <= y && y < ry2 then
+            assert_equal(b.get_pixel(x, y), expected)
+          else
+            assert_equal(b.get_pixel(x, y), Color.new(x, y, 13, 14))
           end
         end
       end
