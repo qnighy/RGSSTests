@@ -317,6 +317,7 @@ class TestBitmap
   end
 
   def test_blt
+    # TODO: add tests about self-copy.
     [nil, 0, 100, 255].product(
       [12, -13],
       [14, -15],
@@ -385,6 +386,207 @@ class TestBitmap
         destb.blt(blt_destx, blt_desty, srcb, blt_srcrect)
       else
         destb.blt(blt_destx, blt_desty, srcb, blt_srcrect, opacity)
+      end
+      dest_starty = blt_desty
+      dest_startx = blt_destx
+      src_starty = blt_srcy
+      src_startx = blt_srcx
+      county = regionh.abs
+      countx = regionw.abs
+      src_stepy = 1
+      src_stepx = 1
+      if regionh >= 0 then
+      else
+        src_stepy = -1
+        src_starty -= 1
+      end
+      if regionw >= 0 then
+      else
+        src_stepx = -1
+        src_startx -= 1
+      end
+
+      if src_stepy < 0 && src_starty+1 - county < 0 then
+        dest_starty -= src_starty+1 - county
+        county += src_starty+1 - county
+      elsif src_stepy > 0 && src_starty < 0 then
+        county += src_starty
+        dest_starty -= src_starty
+        src_starty -= src_starty
+      end
+      if src_stepx < 0 && src_startx+1 - countx < 0 then
+        dest_startx -= src_startx+1 - countx
+        countx += src_startx+1 - countx
+      elsif src_stepx > 0 && src_startx < 0 then
+        countx += src_startx
+        dest_startx -= src_startx
+        src_startx -= src_startx
+      end
+      if dest_starty < 0 then
+        county += dest_starty
+        src_starty -= dest_starty * src_stepy
+        dest_starty -= dest_starty
+      end
+      if dest_startx < 0 then
+        countx += dest_startx
+        src_startx -= dest_startx * src_stepx
+        dest_startx -= dest_startx
+      end
+      if src_stepy < 0 && src_starty > srch-1 then
+        county -= src_starty-(srch-1)
+        src_starty = srch-1
+      elsif src_stepy > 0 && src_starty + county > srch then
+        county = srch - src_starty
+      end
+      if src_stepx < 0 && src_startx > srcw-1 then
+        countx -= src_startx-(srcw-1)
+        src_startx = srcw-1
+      elsif src_stepx > 0 && src_startx + countx > srcw then
+        countx = srcw - src_startx
+      end
+      if dest_starty + county > desth then
+        county = desth - dest_starty
+      end
+      if dest_startx + countx > destw then
+        countx = destw - dest_startx
+      end
+
+      desty = dest_starty
+      srcy = src_starty
+      county.times do
+        destx = dest_startx
+        srcx = src_startx
+        countx.times do
+          # begin
+            assert(0 <= srcy && srcy < srch)
+            assert(0 <= srcx && srcx < srcw)
+          # rescue
+          #   puts "opacity=#{opacity}, region=(#{regionh},#{regionw}), src_margin=(#{ymargin1},#{xmargin1},#{ymargin2},#{xmargin2}), dest_margin=(#{ymargin3},#{xmargin3},#{ymargin4},#{xmargin4})"
+          #   puts "dest_pos=(#{desty},#{destx})"
+          #   puts "src_pos=(#{srcy},#{srcx})"
+          #   puts "dest size=(#{desth},#{destw})"
+          #   puts "src size=(#{srch},#{srcw})"
+          #   puts "dest_start=(#{dest_starty},#{dest_startx})"
+          #   puts "src_start=(#{src_starty},#{src_startx})"
+          #   puts "src_step=(#{src_stepy},#{src_stepx})"
+          #   puts "count=(#{county},#{countx})"
+          #   raise
+          # end
+          simdestb.set_pixel(
+            destx, desty,
+            blend(
+              simdestb.get_pixel(destx, desty),
+              srcb.get_pixel(srcx, srcy),
+              opacity || 255))
+          destx += 1
+          srcx += src_stepx
+        end
+        desty += 1
+        srcy += src_stepy
+      end
+
+      desth.times do|y|
+        destw.times do|x|
+          c_expected = simdestb.get_pixel(x, y)
+          c_result = destb.get_pixel(x, y)
+          # begin
+            if c_expected then
+              assert_equal(c_result, c_expected)
+            end
+          # rescue
+          #   puts "opacity=#{opacity}, region=(#{regionh},#{regionw}), src_margin=(#{ymargin1},#{xmargin1},#{ymargin2},#{xmargin2}), dest_margin=(#{ymargin3},#{xmargin3},#{ymargin4},#{xmargin4})"
+          #   puts "dest_pos=(#{y},#{x})"
+          #   puts "result(blt)=#{c_result}"
+          #   puts "expected   =#{c_expected}"
+          #   puts "original   =#{origb.get_pixel(x, y)}"
+          #   puts "dest size=(#{desth},#{destw})"
+          #   puts "src size=(#{srch},#{srcw})"
+          #   puts "dest_start=(#{dest_starty},#{dest_startx})"
+          #   puts "src_start=(#{src_starty},#{src_startx})"
+          #   puts "src_step=(#{src_stepy},#{src_stepx})"
+          #   puts "count=(#{county},#{countx})"
+          #   raise
+          # end
+        end
+      end
+    end
+  # rescue
+  #   p $!
+  #   p $!.backtrace
+  #   raise
+  end
+
+  def test_stretch_blt
+    # TODO: add more tests regarding stretching.
+    [nil, 0, 100, 255].product(
+      [12, -13],
+      [14, -15],
+      [1, -2],
+      [2, -3],
+      [3, -4],
+      [4, -5],
+      [2, -3],
+      [3, -4],
+      [4, -5],
+      [5, -6]
+    ).each do|
+        (opacity, regionh, regionw,
+         ymargin1, xmargin1, ymargin2, xmargin2,
+         ymargin3, xmargin3, ymargin4, xmargin4)|
+      srch = regionh.abs + ymargin1 + ymargin2
+      srcw = regionw.abs + xmargin1 + xmargin2
+      desth = regionh.abs + ymargin3 + ymargin4
+      destw = regionw.abs + xmargin3 + xmargin4
+      srcb = Bitmap.new(srcw, srch)
+      srch.times do|y|
+        srcw.times do|x|
+          srcb.set_pixel(
+            x, y,
+            Color.new(
+              x * 255 / (srcw-1),
+              y * 255 / (srch-1),
+              x * 255 / (srcw-1),
+              y * 255 / (srch-1)))
+          # srcb.set_pixel(
+          #   x, y,
+          #   Color.new(y, x, 0, 255))
+        end
+      end
+      destb = Bitmap.new(destw, desth)
+      simdestb = Bitmap.new(destw, desth)
+      # origb = Bitmap.new(destw, desth)
+      desth.times do|y|
+        destw.times do|x|
+          destb.set_pixel(
+            x, y,
+            Color.new(
+              255 - x * 255 / (destw-1),
+              x * 255 / (destw-1),
+              y * 255 / (desth-1),
+              x * 255 / (destw-1)))
+          # destb.set_pixel(
+          #   x, y,
+          #   Color.new(0, y, x, 0))
+          simdestb.set_pixel(x, y, destb.get_pixel(x, y))
+          # origb.set_pixel(x, y, destb.get_pixel(x, y))
+        end
+      end
+      blt_srcy = ymargin1
+      blt_desty = ymargin3
+      blt_srcx = xmargin1
+      blt_destx = xmargin3
+      if regionh < 0 then
+        blt_srcy -= regionh
+      end
+      if regionw < 0 then
+        blt_srcx -= regionw
+      end
+      blt_srcrect = Rect.new(blt_srcx, blt_srcy, regionw, regionh)
+      blt_destrect = Rect.new(blt_destx, blt_desty, regionw.abs, regionh.abs)
+      if opacity.nil? then
+        destb.stretch_blt(blt_destrect, srcb, blt_srcrect)
+      else
+        destb.stretch_blt(blt_destrect, srcb, blt_srcrect, opacity)
       end
       dest_starty = blt_desty
       dest_startx = blt_destx
