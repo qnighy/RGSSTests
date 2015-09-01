@@ -23,6 +23,29 @@ def assert_raise(*args, &b)
   end
   raise AssertionFailedError, message
 end
+def assert_nothing_raised(*args, &b)
+  message = nil
+  if String === args.last then
+    message = args.pop
+  end
+  begin
+    b.call
+  rescue
+    if args.any? {|k| $!.kind_of?(k) } then
+      raise AssertionFailedError, message
+    end
+  end
+end
+def assert_raise_with_message(exception, expected, msg = nil, &b)
+  begin
+    b.call
+  rescue
+    if $!.kind_of?(exception) && $!.message == expected then
+      return
+    end
+  end
+  raise AssertionFailedError, msg
+end
 def assert(boolean, message = nil)
   if !boolean then
     raise AssertionFailedError, message
