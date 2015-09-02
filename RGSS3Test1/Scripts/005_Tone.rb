@@ -1,5 +1,9 @@
 class TestTone
 
+  class BareTone < Tone
+    def initialize; end
+  end
+
   def test_class
     assert_equal(Tone.superclass, Object)
   end
@@ -59,6 +63,12 @@ class TestTone
   def test_equality
     # Tone is equal when red, green, blue and gray is equal.
     assert_equal(Tone.new(1.5, 2.5, 3.5, 4.5), Tone.new(1.5, 2.5, 3.5, 4.5))
+    assert_not_equal(Tone.new(1.5, 2.5, 3.5, 4.5), 1)
+    assert_not_equal(Tone.new(1.5, 2.5, 3.5, 4.5), "foo")
+    assert_not_equal(Tone.new(1.5, 2.5, 3.5, 4.5), [1])
+    assert_not_equal(Tone.new(1.5, 2.5, 3.5, 4.5), :foo)
+    assert_not_equal(Tone.new(1.5, 2.5, 3.5, 4.5), Object.new)
+    assert_not_equal(Tone.new(1.5, 2.5, 3.5, 4.5), Color.new(1.5, 2.5, 3.5, 4.5))
     assert_not_equal(Tone.new(11.5, 2.5, 3.5, 4.5), Tone.new(1.5, 2.5, 3.5, 4.5))
     assert_not_equal(Tone.new(1.5, 12.5, 3.5, 4.5), Tone.new(1.5, 2.5, 3.5, 4.5))
     assert_not_equal(Tone.new(1.5, 2.5, 13.5, 4.5), Tone.new(1.5, 2.5, 3.5, 4.5))
@@ -261,6 +271,30 @@ class TestTone
         Tone.new.tap{|t|t.send(:initialize_copy,
                                 construct_load(301.5, 302.5, 303.5, 304.5))}),
       [301.5, 302.5, 303.5, 304.5])
+  end
+
+  def test_allocator
+    assert(fields(BareTone.new) == [0.0, 0.0, 0.0, 0.0])
+    t = BareTone.new
+    t.set(1.5, 2.5, 3.5, 4.5)
+    assert_equal(fields(t), [1.5, 2.5, 3.5, 4.5])
+    assert_equal(t.send(:initialize), nil)
+    assert_equal(fields(t), [1.5, 2.5, 3.5, 4.5])
+  end
+
+  def test_typechecking
+    t = Tone.new
+    t.set(Color.new(1.5, 2.5, 3.5, 4.5))
+    assert_equal(fields(t), [1.5, 2.5, 3.5, 4.5])
+    assert_raise_with_message(TypeError, "wrong argument type Object (expected Data)") { t.set(Object.new) }
+  end
+
+  def test_argchecking
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 1)") { Tone.new(1.5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 2)") { Tone.new(1.5, 2.5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 5)") { Tone.new(1.5, 2.5, 3.5, 4.5, 5.5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 2)") { Tone.new.set(1.5, 2.5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 5)") { Tone.new.set(1.5, 2.5, 3.5, 4.5, 5.5) }
   end
 end
 

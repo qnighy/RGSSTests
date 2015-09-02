@@ -1,5 +1,9 @@
 class TestColor
 
+  class BareColor < Color
+    def initialize; end
+  end
+
   def test_class
     assert_equal(Color.superclass, Object)
   end
@@ -60,6 +64,12 @@ class TestColor
   def test_equality
     # Color is equal when red, green, blue and alpha is equal.
     assert_equal(Color.new(1.5, 2.5, 3.5, 4.5), Color.new(1.5, 2.5, 3.5, 4.5))
+    assert_not_equal(Color.new(1.5, 2.5, 3.5, 4.5), 1)
+    assert_not_equal(Color.new(1.5, 2.5, 3.5, 4.5), "foo")
+    assert_not_equal(Color.new(1.5, 2.5, 3.5, 4.5), [1])
+    assert_not_equal(Color.new(1.5, 2.5, 3.5, 4.5), :foo)
+    assert_not_equal(Color.new(1.5, 2.5, 3.5, 4.5), Object.new)
+    assert_not_equal(Color.new(1.5, 2.5, 3.5, 4.5), Tone.new(1.5, 2.5, 3.5, 4.5))
     assert_not_equal(Color.new(11.5, 2.5, 3.5, 4.5), Color.new(1.5, 2.5, 3.5, 4.5))
     assert_not_equal(Color.new(1.5, 12.5, 3.5, 4.5), Color.new(1.5, 2.5, 3.5, 4.5))
     assert_not_equal(Color.new(1.5, 2.5, 13.5, 4.5), Color.new(1.5, 2.5, 3.5, 4.5))
@@ -314,6 +324,30 @@ class TestColor
         Color.new.tap{|c|c.send(:initialize_copy,
                                 construct_load(301.5, 302.5, 303.5, 304.5))}),
       [301.5, 302.5, 303.5, 304.5])
+  end
+
+  def test_allocator
+    assert(fields(BareColor.new) == [0.0, 0.0, 0.0, 0.0])
+    c = BareColor.new
+    c.set(1.5, 2.5, 3.5, 4.5)
+    assert_equal(fields(c), [1.5, 2.5, 3.5, 4.5])
+    assert_equal(c.send(:initialize), nil)
+    assert_equal(fields(c), [1.5, 2.5, 3.5, 4.5])
+  end
+
+  def test_typechecking
+    c = Color.new
+    c.set(Tone.new(1.5, 2.5, 3.5, 4.5))
+    assert_equal(fields(c), [1.5, 2.5, 3.5, 4.5])
+    assert_raise_with_message(TypeError, "wrong argument type Object (expected Data)") { c.set(Object.new) }
+  end
+
+  def test_argchecking
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 1)") { Color.new(1.5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 2)") { Color.new(1.5, 2.5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 5)") { Color.new(1.5, 2.5, 3.5, 4.5, 5.5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 2)") { Color.new.set(1.5, 2.5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 5)") { Color.new.set(1.5, 2.5, 3.5, 4.5, 5.5) }
   end
 end
 
