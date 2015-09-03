@@ -1,5 +1,9 @@
 class TestRect
 
+  class BareRect < Rect
+    def initialize; end
+  end
+
   def test_class
     assert_equal(Rect.superclass, Object)
   end
@@ -36,6 +40,11 @@ class TestRect
 
   def test_equality
     assert_equal(Rect.new(1, 2, 3, 4), Rect.new(1, 2, 3, 4))
+    assert_not_equal(Rect.new(1, 2, 3, 4), 1)
+    assert_not_equal(Rect.new(1, 2, 3, 4), "foo")
+    assert_not_equal(Rect.new(1, 2, 3, 4), [1])
+    assert_not_equal(Rect.new(1, 2, 3, 4), :foo)
+    assert_not_equal(Rect.new(1, 2, 3, 4), Object.new)
     assert_not_equal(Rect.new(11, 2, 3, 4), Rect.new(1, 2, 3, 4))
     assert_not_equal(Rect.new(1, 12, 3, 4), Rect.new(1, 2, 3, 4))
     assert_not_equal(Rect.new(1, 2, 13, 4), Rect.new(1, 2, 3, 4))
@@ -165,6 +174,32 @@ class TestRect
     assert_equal(fields(r), [31, 32, 33, 34])
     r.empty
     assert_equal(fields(r), [0, 0, 0, 0])
+  end
+
+  def test_allocator
+    assert(fields(BareRect.new) == [0, 0, 0, 0])
+    r = BareRect.new
+    r.set(1, 2, 3, 4)
+    assert_equal(fields(r), [1, 2, 3, 4])
+    assert_equal(r.send(:initialize), nil)
+    assert_equal(fields(r), [1, 2, 3, 4])
+  end
+
+  def test_typechecking
+    r = Rect.new
+    assert_nothing_raised(TypeError) { r.set(Color.new) }
+    assert_raise_with_message(TypeError, "wrong argument type Object (expected Data)") { r.set(Object.new) }
+  end
+
+  def test_argchecking
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 1)") { Rect.new(1) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 2)") { Rect.new(1, 2) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 3)") { Rect.new(1, 2, 3) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 5)") { Rect.new(1, 2, 3, 4, 5) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 0)") { Rect.new.set }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 2)") { Rect.new.set(1, 2) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 3)") { Rect.new.set(1, 2, 3) }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (4 for 5)") { Rect.new.set(1, 2, 3, 4, 5) }
   end
 end
 
