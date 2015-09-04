@@ -1,5 +1,9 @@
 class TestTable
 
+  class BareTable < Table
+    def initialize; end
+  end
+
   def test_class
     assert_equal(Table.superclass, Object)
   end
@@ -105,6 +109,7 @@ class TestTable
     assert_raise(ArgumentError) { t[4, 19, 11, 99] }
     assert_raise(ArgumentError) { t[4, 19] }
     assert_raise(ArgumentError) { t[4] }
+    assert_raise(ArgumentError) { t[] }
     assert_raise(TypeError) { t["4", 19, 11] }
     assert_raise(TypeError) { t[4, "19", 11] }
     assert_raise(TypeError) { t[4, 19, "11"] }
@@ -488,6 +493,38 @@ class TestTable
     assert_equal(sizes(t), [-2, 1, 1])
     assert_equal(rawheader(t), [1, -2, 1, 1, 0])
     assert_equal(t[0], nil)
+  end
+
+  def test_allocator
+    assert_equal(rawheader(BareTable.new), [0, 0, 0, 0, 0])
+    GC.start
+    t = BareTable.new
+    t.resize(10, 20, 30)
+    t[4, 19, 11] = 5
+    t[5, 10, 1] = -3
+    assert_equal(t[4, 19, 11], 5)
+    assert_equal(t[5, 10, 1], -3)
+    t = Table.new(10, 20, 30)
+    t[4, 19, 11] = 5
+    t[5, 10, 1] = -3
+    t.send(:initialize, 15, 25, 35);
+    assert_equal(t[4, 19, 11], 0)
+  end
+
+  def test_argchecking
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (1 for 0)") { Table.new }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 4)") { Table.new(10, 20, 30, 40) }
+    t = Table.new(10, 20, 30)
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 4)") { t[4, 19, 11, 99] }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 2)") { t[4, 19] }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 1)") { t[4] }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 0)") { t[] }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 5)") { t[4, 19, 11, 99] = 5 }
+    # # assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 3)") { t[4, 19] = 5 }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 2)") { t[4] = 5 }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 1)") { t[] = 5 }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (1 for 0)") { t.resize }
+    assert_raise_with_message(ArgumentError, "wrong number of arguments (3 for 4)") { t.resize(10, 20, 30, 40) }
   end
 end
 
