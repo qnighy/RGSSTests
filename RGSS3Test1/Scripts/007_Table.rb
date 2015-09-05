@@ -148,9 +148,10 @@ class TestTable
 
   def test_setters
     t = Table.new(10, 20, 30)
-    assert_equal(t[4, 19, 11] = 5, 5)
-    assert_equal(t[-1, -1, -1] = 5, 5)
-    assert(Float === (t[4, 19, 11] = 10.5))
+    assert_equal(t.send(:[]=, 4, 19, 11, 5), 5)
+    assert_equal(t.send(:[]=, -1, -1, -1, 5), nil)
+    assert(Integer === (t.send(:[]=, 4, 19, 11, 10.5)))
+    assert_equal(t.send(:[]=, 4, 19, 11, 70000), 4464)
     assert_raise(ArgumentError) { t[4, 19, 11, 99] = 5 }
     # assert_raise(ArgumentError) { t[4, 19] = 5 }
     assert_raise(ArgumentError) { t[4] = 5 }

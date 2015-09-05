@@ -151,14 +151,14 @@ class TestTone
   def test_setters
     # Setters return the argument.
     t = Tone.new
-    assert_equal(1.5, t.red = 1.5)
-    assert_equal(2.5, t.green = 2.5)
-    assert_equal(3.5, t.blue = 3.5)
-    assert_equal(4.5, t.gray = 4.5)
-    assert(Integer === (t.red = 1))
-    assert(Integer === (t.green = 2))
-    assert(Integer === (t.blue = 3))
-    assert(Integer === (t.gray = 4))
+    assert_equal(1.5, t.send(:red=, 1.5))
+    assert_equal(2.5, t.send(:green=, 2.5))
+    assert_equal(3.5, t.send(:blue=, 3.5))
+    assert_equal(4.5, t.send(:gray=, 4.5))
+    assert(Integer === (t.send(:red=, 1)))
+    assert(Integer === (t.send(:green=, 2)))
+    assert(Integer === (t.send(:blue=, 3)))
+    assert(Integer === (t.send(:gray=, 4)))
 
     # Setters
     assert_equal(fields(Tone.new.tap{|t|t.red = 1.5}), [1.5, 0.0, 0.0, 0.0])

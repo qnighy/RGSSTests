@@ -153,14 +153,14 @@ class TestColor
   def test_setters
     # Setters return the argument.
     c = Color.new
-    assert_equal(1.5, c.red = 1.5)
-    assert_equal(2.5, c.green = 2.5)
-    assert_equal(3.5, c.blue = 3.5)
-    assert_equal(4.5, c.alpha = 4.5)
-    assert(Integer === (c.red = 1))
-    assert(Integer === (c.green = 2))
-    assert(Integer === (c.blue = 3))
-    assert(Integer === (c.alpha = 4))
+    assert_equal(1.5, c.send(:red=, 1.5))
+    assert_equal(2.5, c.send(:green=, 2.5))
+    assert_equal(3.5, c.send(:blue=, 3.5))
+    assert_equal(4.5, c.send(:alpha=, 4.5))
+    assert(Integer === (c.send(:red=, 1)))
+    assert(Integer === (c.send(:green=, 2)))
+    assert(Integer === (c.send(:blue=, 3)))
+    assert(Integer === (c.send(:alpha=, 4)))
 
     # Setters
     assert_equal(fields(Color.new.tap{|c|c.red = 1.5}), [1.5, 0.0, 0.0, 0.0])

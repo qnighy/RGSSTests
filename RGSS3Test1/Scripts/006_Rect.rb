@@ -96,14 +96,14 @@ class TestRect
   def test_setters
     # Setters return the argument.
     r = Rect.new
-    assert_equal(1, r.x = 1)
-    assert_equal(2, r.y = 2)
-    assert_equal(3, r.width = 3)
-    assert_equal(4, r.height = 4)
-    assert(Float === (r.x = 1.5))
-    assert(Float === (r.y = 2.5))
-    assert(Float === (r.width = 3.5))
-    assert(Float === (r.height = 4.5))
+    assert_equal(1, r.send(:x=, 1))
+    assert_equal(2, r.send(:y=, 2))
+    assert_equal(3, r.send(:width=, 3))
+    assert_equal(4, r.send(:height=, 4))
+    assert(Float === (r.send(:x=, 1.5)))
+    assert(Float === (r.send(:y=, 2.5)))
+    assert(Float === (r.send(:width=, 3.5)))
+    assert(Float === (r.send(:height=, 4.5)))
 
     # Setters
     assert_equal(fields(Rect.new.tap{|r|r.x = 1}), [1, 0, 0, 0])
