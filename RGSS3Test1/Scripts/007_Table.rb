@@ -496,6 +496,7 @@ class TestTable
   end
 
   def test_allocator
+    assert_raise(NoMethodError) {Table.new(10).initialize(10)}
     assert_equal(rawheader(BareTable.new), [0, 0, 0, 0, 0])
     GC.start
     t = BareTable.new

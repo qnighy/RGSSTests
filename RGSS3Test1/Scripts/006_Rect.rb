@@ -177,6 +177,7 @@ class TestRect
   end
 
   def test_allocator
+    assert_raise(NoMethodError) {Rect.new.initialize}
     assert(fields(BareRect.new) == [0, 0, 0, 0])
     r = BareRect.new
     r.set(1, 2, 3, 4)

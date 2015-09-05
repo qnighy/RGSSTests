@@ -274,6 +274,7 @@ class TestTone
   end
 
   def test_allocator
+    assert_raise(NoMethodError) {Tone.new.initialize}
     assert(fields(BareTone.new) == [0.0, 0.0, 0.0, 0.0])
     t = BareTone.new
     t.set(1.5, 2.5, 3.5, 4.5)
@@ -299,3 +300,4 @@ class TestTone
 end
 
 run_test(TestTone)
+

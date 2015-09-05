@@ -327,6 +327,7 @@ class TestColor
   end
 
   def test_allocator
+    assert_raise(NoMethodError) {Color.new.initialize}
     assert(fields(BareColor.new) == [0.0, 0.0, 0.0, 0.0])
     c = BareColor.new
     c.set(1.5, 2.5, 3.5, 4.5)
