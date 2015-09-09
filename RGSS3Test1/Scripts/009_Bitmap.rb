@@ -716,6 +716,136 @@ class TestBitmap
   #   p $!.backtrace
   #   raise
   end
+
+  def test_blur
+    prng = Random.new(1234)
+    100.times do
+      h = prng.rand(prng.rand(4) == 0 ? 3 : 10) + 1
+      w = prng.rand(prng.rand(4) == 0 ? 3 : 10) + 1
+      b = Bitmap.new(w, h)
+      h.times do|y|
+        w.times do|x|
+          cr = prng.rand(256)
+          cg = prng.rand(256)
+          cb = prng.rand(256)
+          ca = prng.rand(256)
+          b.set_pixel(x, y, Color.new(cr, cg, cb, ca))
+        end
+      end
+      b2 = Bitmap.new(w, h)
+      h.times do|y|
+        w.times do|x|
+          if w <= 2 || h <= 2 then
+            b2.set_pixel(x, y, b.get_pixel(x, y))
+          else
+            cr = 0
+            cg = 0
+            cb = 0
+            ca = 0
+            (y-1..y+1).each do|yy|
+              (x-1..x+1).each do|xx|
+                c = b.get_pixel(
+                  [[xx,0].max,w-1].min,
+                  [[yy,0].max,h-1].min)
+                cr += c.red.to_i
+                cg += c.green.to_i
+                cb += c.blue.to_i
+                ca += c.alpha.to_i
+              end
+            end
+            b2.set_pixel(x, y, Color.new(cr/9, cg/9, cb/9, ca/9))
+          end
+        end
+      end
+      b.blur
+      h.times do|y|
+        w.times do|x|
+          assert_equal(b.get_pixel(x,y),b2.get_pixel(x,y))
+        end
+      end
+    end
+  end
+
+  def test_radial_blur
+    count = 0
+    do_test = proc {|b, angle, division|
+      b2 = b.dup
+      b2.radial_blur(angle, division)
+      coefs = division.times.map {|i|
+        theta = Math::PI/180*angle*(i.to_f/(division-1)-0.5)
+        [Math::cos(theta), Math::sin(theta)]
+      }
+      centery = b.height/2
+      centerx = b.width/2
+      b.height.times do|desty|
+        b.width.times do|destx|
+          cr = 0
+          cg = 0
+          cb = 0
+          ca = 0
+          coefs.each do|(coef_c, coef_s)|
+            debug = ([b.height, b.width, desty, destx] == [4, 20, 0, 1])
+            dest_yd = desty - centery
+            dest_xd = destx - centerx
+            src_yd = coef_c * dest_yd - coef_s * dest_xd + centery + 0.5
+            src_xd = coef_s * dest_yd + coef_c * dest_xd + centerx + 0.5
+            src_yd = src_yd.to_i
+            src_xd = src_xd.to_i
+            while src_yd < 0 || b.height <= src_yd do
+              if src_yd < 0 then
+                src_yd = -src_yd
+              end
+              if b.height <= src_yd then
+                src_yd = 2 * b.height - 1 - src_yd
+              end
+            end
+            while src_xd < 0 || b.width <= src_xd do
+              if src_xd < 0 then
+                src_xd = -src_xd
+              end
+              if b.width <= src_xd then
+                src_xd = 2 * b.width - 1 - src_xd
+              end
+            end
+            c = b.get_pixel(src_xd, src_yd)
+            cr += c.red.to_i
+            cg += c.green.to_i
+            cb += c.blue.to_i
+            ca += c.alpha.to_i
+          end
+          c_expected = Color.new(cr/division, cg/division, cb/division, ca/division)
+          begin
+            assert_equal(c_expected, b2.get_pixel(destx, desty))
+          rescue
+            p [desty, destx]
+            p c_expected
+            p b2.get_pixel(destx, desty)
+            p $!
+            count += 1
+            count < 10 or raise
+          end
+        end
+      end
+    }
+    prng = Random.new(1234)
+    randimg = proc {|h, w|
+      b = Bitmap.new(w, h)
+      b.height.times do|y|
+        b.width.times do|x|
+          cr = prng.rand(256)
+          cg = prng.rand(256)
+          cb = prng.rand(256)
+          ca = prng.rand(256)
+          b.set_pixel(x, y, Color.new(cr, cg, cb, ca))
+        end
+      end
+      b
+    }
+    do_test.call(randimg.call(10, 10), 40, 11)
+    do_test.call(randimg.call(9, 60), 151, 5)
+    do_test.call(randimg.call(100, 9), 204, 5)
+    do_test.call(randimg.call(9, 100), 204, 5)
+  end
 end
 
 run_test(TestBitmap)
